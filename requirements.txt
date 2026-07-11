@@ -1,0 +1,5 @@
+# Minimal requirements for the public showcase example
+# (examples/onnx_infer.py) only. No torch, no training deps.
+onnxruntime
+numpy
+soundfile
