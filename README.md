@@ -22,6 +22,8 @@
 
 > **⚠️ Unofficial Mandarin extension · built on Supertonic-3.** Supertonic-ZH is an independent Mandarin extension built on the publicly released Supertonic-3 model. `v0.1.0-preview` · 2026-07-11.
 
+This is an independent, unofficial Mandarin adaptation of Supertonic; original code and derived model components remain subject to their respective upstream MIT and OpenRAIL-M licenses.
+
 ## ✨ Why Supertonic-ZH?
 
 The official **Supertonic-3** is a fast, lightweight, on-device TTS family — but out of the box it **does not synthesize Mandarin Chinese**. Supertonic-ZH closes that gap: a Mandarin fine-tune distributed as **optimized, fused ONNX graphs** that run in **pure ONNX Runtime**, on top of the **frozen, unmodified** upstream vocoder.
