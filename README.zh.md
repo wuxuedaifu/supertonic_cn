@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🗣️ Supertonic-ZH
+# 🗣️ Supertonic-ZH — Unofficial Mandarin Adaptation
 
 ### 为端侧 Supertonic TTS 家族带来**普通话中文**
 
