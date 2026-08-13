@@ -22,8 +22,6 @@
 
 > **⚠️ Unofficial Mandarin extension · built on Supertonic-3.** Supertonic-ZH is an independent Mandarin extension built on the publicly released Supertonic-3 model. `v0.1.0-preview` · 2026-07-11.
 
-This is an independent, unofficial Mandarin adaptation of Supertonic; original code and derived model components remain subject to their respective upstream MIT and OpenRAIL-M licenses.
-
 ## ✨ Why Supertonic-ZH?
 
 The official **Supertonic-3** is a fast, lightweight, on-device TTS family — but out of the box it **does not synthesize Mandarin Chinese**. Supertonic-ZH closes that gap: a Mandarin fine-tune distributed as **optimized, fused ONNX graphs** that run in **pure ONNX Runtime**, on top of the **frozen, unmodified** upstream vocoder.
@@ -94,6 +92,31 @@ pip install onnxruntime numpy soundfile
 # place the gated ONNX + upstream vocoder.onnx + indexer + voice in ./onnx
 python examples/onnx_infer.py "今天天气很好，我们一起去公园散步吧。"
 ```
+
+## Streaming synthesis
+
+`streaming_tts.py` adds low-latency streaming on top of the same frozen ONNX
+graphs — no model changes. Text arrives incrementally (e.g. from an LLM), gets
+cut at clause boundaries, and audio chunks stream out while later text is
+still being generated. Supports barge-in via `cancel()`.
+
+```python
+from streaming_tts import StreamingTTS
+
+tts = StreamingTTS(onnx_dir="onnx")
+for pcm in tts.synthesize(llm_text_stream()):   # any iterator of text pieces
+    player.write(pcm)                           # 44.1 kHz float32 mono
+# interrupt at any time:
+tts.cancel()
+```
+
+An async variant `tts.asynthesize(aiter)` is available for async LLM SDKs.
+Measured first-audio latency: 245 ms median (A100 GPU, 16 steps) / 757 ms
+(CPU, 8 steps) vs 609 ms whole-utterance GPU baseline. On GPU, create the
+CUDA session with `cudnn_conv_algo_search: "HEURISTIC"` (as
+`run_streaming_benchmark.py` does) — the default exhaustive search re-tunes
+kernels per clause length and adds ~800 ms. Demo:
+`python examples/streaming_infer.py`.
 
 ## 🎙️ Voices
 

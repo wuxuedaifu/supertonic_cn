@@ -39,3 +39,26 @@
 | code_switch | 0.6156 | 6 |
 | percent | 0.6255 | 6 |
 | phone | 0.7912 | 6 |
+
+## Streaming (Stage 1)
+
+- date: 2026-08-13
+- devices: cpu; gpu (A100, onnxruntime-gpu 1.22 / CUDA 12, cudnn_conv_algo_search=HEURISTIC)
+
+| Metric (cpu) | Value |
+|---|---|
+| First-audio latency, 16 steps (median ms) | 1476 |
+| First-audio latency, 16 steps (p95 ms) | 1628 |
+| First-audio latency, 8 steps (median ms) | 757 |
+| First-audio latency, 8 steps (p95 ms) | 829 |
+| Barge-in latency (median ms) | 7 |
+
+| Metric (gpu) | Value |
+|---|---|
+| First-audio latency, 16 steps (median ms) | 245 |
+| First-audio latency, 16 steps (p95 ms) | 249 |
+| First-audio latency, 8 steps (median ms) | 197 |
+| First-audio latency, 8 steps (p95 ms) | 200 |
+| Barge-in latency (median ms) | 6 |
+
+**Note:** GPU streaming first-audio (245 ms median at full 16 steps) beats the 609 ms whole-utterance CUDA first packet by ~2.5× and meets the ≤300 ms real-time dialogue target without reducing flow steps. CPU is usable at 8 steps (757 ms) for non-interactive use. GPU requires `cudnn_conv_algo_search=HEURISTIC` (see run_streaming_benchmark.py) — the CUDA EP's default exhaustive search re-tunes kernels per input shape and adds ~800 ms to every fresh clause length.

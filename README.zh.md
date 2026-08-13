@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🗣️ Supertonic-ZH — Unofficial Mandarin Adaptation
+# 🗣️ Supertonic-ZH
 
 ### 为端侧 Supertonic TTS 家族带来**普通话中文**
 
@@ -93,6 +93,22 @@ pip install onnxruntime numpy soundfile
 python examples/onnx_infer.py "今天天气很好，我们一起去公园散步吧。"
 ```
 
+## 流式合成
+
+`streaming_tts.py` 在同一套冻结的 ONNX 计算图之上加入了低延迟流式合成 —— 不改动模型。文本可以增量到达(例如来自 LLM 的输出),在子句边界处切分,音频块在后续文本仍在生成时就持续流出。通过 `cancel()` 支持打断(barge-in)。
+
+```python
+from streaming_tts import StreamingTTS
+
+tts = StreamingTTS(onnx_dir="onnx")
+for pcm in tts.synthesize(llm_text_stream()):   # any iterator of text pieces
+    player.write(pcm)                           # 44.1 kHz float32 mono
+# interrupt at any time:
+tts.cancel()
+```
+
+异步版本 `tts.asynthesize(aiter)` 可用于异步 LLM SDK。实测首音延迟:245 ms 中位数(A100 GPU,16 步)/ 757 ms(CPU,8 步),对比整句一次性合成的 GPU 基线 609 ms。在 GPU 上,创建 CUDA session 时应设置 `cudnn_conv_algo_search: "HEURISTIC"`(与 `run_streaming_benchmark.py` 的做法一致)—— 默认的穷举搜索会针对每种子句长度重新调优内核,额外增加约 800 ms 延迟。演示:`python examples/streaming_infer.py`。
+
 ## 🎙️ 音色
 
 本预览以单一**预置音色**合成,以 voice-style 嵌入 JSON 形式提供([`assets/F1.json`](assets/F1.json))。**自定义音色 / 语音克隆**(从一段参考音频克隆新说话人)**不属于本预览** —— 它是仅在私有/商用授权下提供的独立能力,此处不描述、不分发。
@@ -100,7 +116,7 @@ python examples/onnx_infer.py "今天天气很好，我们一起去公园散步�
 ## 🧾 许可证
 
 - **代码** —— MIT([`LICENSE`](LICENSE))。
-- **模型权重** —— 独立的评估许可,按需提供;当前构建仅限非商用(训练数据包含 Baker/CSMSC 语料)。
+- **模型权重** —— 独立的评估许可,按需提供;当前构建仅限非商用(训练数据包含 Baker/CSMSC 语料)。商用授权面向另行提供的 Baker-free 构建。
 
 ## ⚠️ 限制
 
