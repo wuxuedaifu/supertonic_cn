@@ -169,8 +169,11 @@ class StreamingTTS:
     """Streaming facade: text pieces in -> processed audio chunks out.
 
     Pull-based: the consumer's iteration pace is the back-pressure, no
-    unbounded buffering. One active stream per instance; a new synthesize()
-    call is a new turn and resets any previous cancel().
+    unbounded buffering -- on the sync synthesize() path. asynthesize()
+    bridges synthesize() through an unbounded asyncio.Queue instead (audio
+    chunks are small, so this is fine in practice; a bounded handoff there
+    is a known follow-up). One active stream per instance; a new
+    synthesize() call is a new turn and resets any previous cancel().
     """
 
     def __init__(self, onnx_dir=None, voice_path=None, vocoder_path=None,
@@ -224,6 +227,8 @@ class StreamingTTS:
 
         loop = asyncio.get_running_loop()
         text_q = queue.Queue()
+        # unbounded by design for now: ~10s audio ≈ 1.7MB float32; bounded
+        # handoff is a follow-up
         audio_q = asyncio.Queue()
         _DONE = object()
 
